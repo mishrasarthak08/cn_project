@@ -13,9 +13,9 @@ chk openssl "brew install openssl"
 chk curl "ships with macOS"
 chk nc "ships with macOS"
 case "$role" in
-  mitul)   chk dnsmasq "brew install dnsmasq"; chk dig "brew install bind";;
-  vaibhav) chk nginx "brew install nginx"; chk dig "brew install bind";;
-  hardik|akshat) [ "$NETWORK_MODE" = tunnel ] && chk cloudflared "brew install cloudflared";;
+  sarthak|mitul)   chk dnsmasq "brew install dnsmasq"; chk dig "brew install bind";;
+  preetish|vaibhav) chk nginx "brew install nginx"; chk dig "brew install bind";;
+  shitanshu|shain|hardik|akshat) [ "$NETWORK_MODE" = tunnel ] && chk cloudflared "brew install cloudflared";;
   "") warn "No ROLE configured yet; only generic tools checked.";;
 esac
 exit $rc

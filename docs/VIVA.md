@@ -2,17 +2,17 @@
 
 Each block: **What / Why / Where / Protocol+port / Packet flow / If it fails / Proof.**
 
-## DNS server (dnsmasq)
+## DNS server (dnsmasq) - Sarthak (Mac 1)
 * **What**: a name->IP directory. **Why**: clients use names, not IPs; one record change re-points traffic. **Where**: Mac 1. **Protocol**: DNS over UDP (TCP for large answers) port 53.
 * **Flow**: client (ephemeral src port) -> Mac 1:53 "A app.team1.test?" -> answer with Mac 2's IP and a TTL.
 * **Fails**: lookups fail, but `ping <ip>` and `curl --resolve` still work - DNS is independent of IP connectivity. **Proof**: `dig @<DNS_IP> app.team1.test`, `tests/test_dns.sh`, `tcpdump`/Wireshark filter `dns`.
 
-## Nginx edge (reverse proxy + TLS termination + load balancer)
+## Nginx edge (reverse proxy + TLS termination + load balancer) - Preetish (Mac 2)
 * **What**: one public entry point that terminates TLS and forwards requests. **Why**: clients need only one name; backends stay private and interchangeable. **Where**: Mac 2, TCP 8443.
 * **Flow**: accepts TCP+TLS from the client, opens a *separate* HTTP connection to A or B, relays the response.
 * **Fails**: everything behind it is unreachable even if backends are healthy (single point of failure). **Proof**: `curl -v`, `./bin/status`, nginx access log (`upstream=` and `backend=`).
 
-## Backends
+## Backends - Shitanshu (Mac 3, Backend A) & Shain (Mac 4, Backend B)
 * **What**: identical Python REST servers. **Why**: give the LB two targets; `X-Backend` makes distribution visible. **Where**: Mac 3 (3001), Mac 4 (3002). **Port**: bound to `0.0.0.0` (reachable off-machine); `127.0.0.1` would be reachable only locally.
 * **Fails**: with one down, nginx marks it failed (`max_fails=1`, `fail_timeout=5s`) and retries on the other; both down -> `502`. **Proof**: stop one and run `./bin/test-all`.
 

@@ -7,36 +7,38 @@ forwards the HTTP request - alternating - to Backend A or Backend B. Every step 
 
 | Mac | Person | Role | Ports |
 |---|---|---|---|
-| 1 | **Mitul** | Private DNS (dnsmasq) + controller + test client | 53/udp+tcp |
-| 2 | **Vaibhav** | nginx edge: TLS termination, reverse proxy, round-robin LB | 8443/tcp |
-| 3 | **Hardik** | Backend A (Python stdlib REST) | 3001/tcp |
-| 4 | **Akshat** | Backend B (same code, different config) | 3002/tcp |
+| 1 | **Sarthak** | Private DNS (dnsmasq) + controller + test client | 53/udp+tcp |
+| 2 | **Preetish** | nginx edge: TLS termination, reverse proxy, round-robin LB | 8443/tcp |
+| 3 | **Shitanshu** | Backend A (Python stdlib REST) | 3001/tcp |
+| 4 | **Shain** | Backend B (same code, different config) | 3002/tcp |
+
+> **Team Setup Runbook:** See [docs/TEAM_SETUP.md](docs/TEAM_SETUP.md) for full step-by-step instructions for each teammate.
 
 ## Two network modes (`NETWORK_MODE`)
 
 * **`lan`** - the architecture from the university brief. All four Macs share one private Wi-Fi/LAN and talk directly. **This is the mode to submit and demo unless faculty approves otherwise.**
-* **`tunnel`** - for when Hardik/Akshat are physically remote. Only the *nginx -> backend* hop changes: it travels over a Cloudflare Zero Trust private network. Mitul <-> Vaibhav (DNS, TCP, TLS, HTTP) stay on the local LAN, so those layers remain observable.
+* **`tunnel`** - for when Shitanshu/Shain are physically remote. Only the *nginx -> backend* hop changes: it travels over a Cloudflare Zero Trust private network. Sarthak <-> Preetish (DNS, TCP, TLS, HTTP) stay on the local LAN, so those layers remain observable.
 
 > Tunnel mode is **not** equivalent to a four-Mac LAN (the brief requires a shared LAN, LAN inventory and pairwise pings, and a locally-run system). It exists for remote development/demo. Nothing in the application, nginx or DNS code changes between modes - only the upstream addresses.
 
 ```mermaid
 flowchart LR
   subgraph LAN["LAN MODE (matches the brief)"]
-    C1["Mac 1 Mitul<br/>client"] -->|"DNS 53/udp"| D1["Mac 1 Mitul<br/>dnsmasq"]
-    C1 -->|"TCP+TLS+HTTP :8443"| E1["Mac 2 Vaibhav<br/>nginx"]
-    E1 -->|"HTTP :3001 (LAN)"| BA1["Mac 3 Hardik<br/>Backend A"]
-    E1 -->|"HTTP :3002 (LAN)"| BB1["Mac 4 Akshat<br/>Backend B"]
+    C1["Mac 1 Sarthak<br/>client"] -->|"DNS 53/udp"| D1["Mac 1 Sarthak<br/>dnsmasq"]
+    C1 -->|"TCP+TLS+HTTP :8443"| E1["Mac 2 Preetish<br/>nginx"]
+    E1 -->|"HTTP :3001 (LAN)"| BA1["Mac 3 Shitanshu<br/>Backend A"]
+    E1 -->|"HTTP :3002 (LAN)"| BB1["Mac 4 Shain<br/>Backend B"]
   end
 ```
 
 ```mermaid
 flowchart LR
   subgraph TUN["TUNNEL MODE (remote backends)"]
-    C2["Mac 1 Mitul<br/>dnsmasq + client"] -->|"DNS, then TCP+TLS+HTTP :8443 (local LAN)"| E2["Mac 2 Vaibhav<br/>nginx + Cloudflare WARP"]
+    C2["Mac 1 Sarthak<br/>dnsmasq + client"] -->|"DNS, then TCP+TLS+HTTP :8443 (local LAN)"| E2["Mac 2 Preetish<br/>nginx + Cloudflare WARP"]
     E2 -->|"10.250.0.3:3001 via WARP"| CF(("Cloudflare<br/>Zero Trust"))
     E2 -->|"10.250.0.4:3002 via WARP"| CF
-    CF -->|"outbound-only tunnel A"| BA2["Mac 3 Hardik<br/>cloudflared + Backend A"]
-    CF -->|"outbound-only tunnel B"| BB2["Mac 4 Akshat<br/>cloudflared + Backend B"]
+    CF -->|"outbound-only tunnel A"| BA2["Mac 3 Shitanshu<br/>cloudflared + Backend A"]
+    CF -->|"outbound-only tunnel B"| BB2["Mac 4 Shain<br/>cloudflared + Backend B"]
   end
 ```
 
@@ -44,14 +46,14 @@ More diagrams: [docs/diagrams.md](docs/diagrams.md). Request walk-through: [docs
 
 ## Quick start - one command per Mac
 
-Everyone: `git clone <repo> && cd <repo>`. Run **in this order** (Vaibhav creates the CA others need):
+Everyone: `git clone https://github.com/mishrasarthak08/cn_project.git && cd cn_project`. Run **in this order** (Preetish creates the CA others need):
 
 | Order | Who | Command |
 |---|---|---|
-| 1 | Hardik | `./macs/mac3-hardik/setup.sh` |
-| 1 | Akshat | `./macs/mac4-akshat/setup.sh` |
-| 2 | Vaibhav | `./macs/mac2-vaibhav/setup.sh` then `git add pki/ca.crt && git commit && git push` |
-| 3 | Mitul | `git pull && ./macs/mac1-mitul/setup.sh` |
+| 1 | Shitanshu | `./macs/mac3-shitanshu/setup.sh` |
+| 1 | Shain | `./macs/mac4-shain/setup.sh` |
+| 2 | Preetish | `./macs/mac2-preetish/setup.sh` then `git add pki/ca.crt && git commit -m "Add public CA cert" && git push` |
+| 3 | Sarthak | `git pull && ./macs/mac1-sarthak/setup.sh` |
 | 4 | any other client | `git pull && scripts/configure-client-dns.sh` |
 
 Setup scripts ask once for non-secret values (team name, mode, LAN IPs) and remember them in
@@ -78,9 +80,9 @@ config/                 project.example.env (all constants), dnsmasq + nginx tem
 scripts/                common.sh, roles.sh, role.sh, checks.sh, CA/DNS/capture helpers
 macs/mac{1..4}-*/       setup|start|stop|status.sh + README per machine
 bin/                    operator commands       tests/   per-layer tests
-admin/                  one-time Cloudflare bootstrap (Mitul only)
-docs/                   architecture, flow, viva, failures, troubleshooting
-pki/ca.crt              PUBLIC CA certificate (safe to commit)
+admin/                  one-time Cloudflare bootstrap (Sarthak only)
+docs/                   architecture, flow, viva, failures, troubleshooting, team setup
+pki/ca.crt              PUBLIC CA certificate (generated by Preetish, safe to commit)
 evidence/               screenshots / pcaps / collected outputs
 ```
 
@@ -95,4 +97,7 @@ Never commit tokens, credentials JSON, `.env`, or any private key (`.gitignore` 
 
 ## Docs
 
-[ARCHITECTURE](docs/ARCHITECTURE.md) - [REQUEST_FLOW](docs/REQUEST_FLOW.md) - [PHASE1](docs/PHASE1.md) (task-by-task checklist) - [LAN_MODE](docs/LAN_MODE.md) - [CLOUDFLARE_MODE](docs/CLOUDFLARE_MODE.md) - [FAILURE_DEMOS](docs/FAILURE_DEMOS.md) - [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) - [VIVA](docs/VIVA.md)
+[TEAM SETUP GUIDE](docs/TEAM_SETUP.md) - [ARCHITECTURE](docs/ARCHITECTURE.md) - [REQUEST_FLOW](docs/REQUEST_FLOW.md) - [PHASE1](docs/PHASE1.md) (task-by-task checklist) - [LAN_MODE](docs/LAN_MODE.md) - [CLOUDFLARE_MODE](docs/CLOUDFLARE_MODE.md) - [FAILURE_DEMOS](docs/FAILURE_DEMOS.md) - [REPORT_TEMPLATE](docs/REPORT_TEMPLATE.md) - [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) - [VIVA](docs/VIVA.md)
+
+---
+*Forked and configured for Sarthak Mishra (`mishrasarthak08`), Preetish Ubhrani (`ubhranipreetish`), Shitanshu Tiwari, and Shain.*

@@ -1,6 +1,6 @@
-# Mac 1 - Mitul - DNS server, controller, test client
+# Mac 1 - Sarthak - DNS server, controller, test client
 
-**Setup (once, idempotent):** `./macs/mac1-mitul/setup.sh`   |   **Start:** `./macs/mac1-mitul/start.sh` (or `./bin/start`)   |   **Stop:** `./macs/mac1-mitul/stop.sh`   |   **Status:** `./macs/mac1-mitul/status.sh` (or `./bin/status`)
+**Setup (once, idempotent):** `./macs/mac1-sarthak/setup.sh`   |   **Start:** `./macs/mac1-sarthak/start.sh` (or `./bin/start`)   |   **Stop:** `./macs/mac1-sarthak/stop.sh`   |   **Status:** `./macs/mac1-sarthak/status.sh` (or `./bin/status`)
 
 **Software installed:** Homebrew, dnsmasq, dig (bind tools if missing); public CA in System keychain
 **Ports:** 53 udp/tcp (dnsmasq)
@@ -8,7 +8,7 @@
 **Settings:** `~/.config/cn-phase1/project.env` (created by setup)
 
 ## Role in the request flow
-First hop: the client asks Mitul's dnsmasq for `app.team1.test` and gets Vaibhav's IP. Mitul also runs `./bin/test-all`, `doctor`, `collect-evidence`. A scoped resolver file `/etc/resolver/team1.test` makes macOS use it for `.test` only.
+First hop: the client asks Sarthak's dnsmasq for `app.team1.test` and gets Preetish's IP. Sarthak also runs `./bin/test-all`, `doctor`, `collect-evidence`. A scoped resolver file `/etc/resolver/team1.test` makes macOS use it for `.test` only.
 
 ## Common errors
 * `address already in use` on :53 -> another DNS service (`sudo lsof -nP -iUDP:53`).
